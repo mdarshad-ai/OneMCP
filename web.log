@@ -1,22 +1,15 @@
 Starting MCP Manager Web Interface...
-2025/12/14 05:33:56 DEBUG: Loading servers...
+2025/12/14 06:45:55 DEBUG: Loading servers...
 DEBUG: ListServerConfigs called, baseDir: /home/arshad/.mcp
 DEBUG: Pattern: /home/arshad/.mcp/servers/*.json
-DEBUG: Found 3 matches
+DEBUG: Found 4 matches
 DEBUG: Reading /home/arshad/.mcp/servers/filesystem.json
 DEBUG: Reading /home/arshad/.mcp/servers/github-server.json
+DEBUG: Reading /home/arshad/.mcp/servers/github.json
 DEBUG: Reading /home/arshad/.mcp/servers/test-server.json
-DEBUG: Returning 3 configs
-2025/12/14 05:33:56 DEBUG: Found 3 server configs
-2025/12/14 05:33:56 Loaded 3 MCP servers
+DEBUG: Returning 4 configs
+2025/12/14 06:45:55 DEBUG: Found 4 server configs
+2025/12/14 06:45:55 Loaded 4 MCP servers
 Web interface starting on 0.0.0.0:8080
 Press Ctrl+C to stop
-2025/12/14 05:33:56 Web server starting on 0.0.0.0:8080
-Error: listen tcp 0.0.0.0:8080: bind: address already in use
-Usage:
-  onemcp web [flags]
-
-Flags:
-  -h, --help   help for web
-
-listen tcp 0.0.0.0:8080: bind: address already in use
+2025/12/14 06:45:55 Web server starting on 0.0.0.0:8080

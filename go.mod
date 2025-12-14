@@ -1,4 +1,4 @@
-module github.com/yourusername/onemcp
+module github.com/mdarshad-ai/OneMCP
 
 go 1.23.0
 

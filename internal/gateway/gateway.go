@@ -13,8 +13,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/yourusername/onemcp/internal/config"
-	"github.com/yourusername/onemcp/internal/storage"
+	"github.com/mdarshad-ai/OneMCP/internal/config"
+	"github.com/mdarshad-ai/OneMCP/internal/storage"
 )
 
 // Gateway represents the MCP gateway server

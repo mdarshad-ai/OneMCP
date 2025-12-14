@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/yourusername/onemcp/internal/config"
-	"github.com/yourusername/onemcp/internal/gateway"
+	"github.com/mdarshad-ai/OneMCP/internal/config"
+	"github.com/mdarshad-ai/OneMCP/internal/gateway"
 )
 
 // Server represents the MCP server that aggregates tools from all installed servers

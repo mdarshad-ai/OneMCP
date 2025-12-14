@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/yourusername/onemcp/internal/config"
-	"github.com/yourusername/onemcp/internal/gateway"
-	"github.com/yourusername/onemcp/internal/storage"
+	"github.com/mdarshad-ai/OneMCP/internal/config"
+	"github.com/mdarshad-ai/OneMCP/internal/gateway"
+	"github.com/mdarshad-ai/OneMCP/internal/storage"
 )
 
 // ServerInfo represents information about a server for the web API

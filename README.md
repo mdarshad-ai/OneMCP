@@ -1,167 +1,272 @@
-# OneMCP
+# OneMCP - MCP Server Manager
 
-OneMCP is a cross-platform tool that provides centralized installation and management of MCP (Model Context Protocol) servers. It offers a single gateway endpoint that aggregates multiple MCP servers, allowing users to configure just one MCP connection in their tools (Claude, Cursor, opencode) while accessing all installed MCP servers.
+[![Go Version](https://img.shields.io/badge/Go-1.23+-blue.svg)](https://golang.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Release](https://img.shields.io/github/v/release/mdarshad-ai/OneMCP)](https://github.com/mdarshad-ai/OneMCP/releases)
 
-## Features
+OneMCP is a cross-platform tool that provides **centralized installation and management** of MCP (Model Context Protocol) servers. It offers a **single gateway endpoint** that aggregates multiple MCP servers, allowing users to configure just **one MCP connection** in their tools (Claude, Cursor, opencode) while accessing all installed MCP servers.
 
-- **Centralized MCP Server Management**: Install and manage multiple MCP servers from npm, pip, or custom repositories
-- **Unified Gateway**: Single MCP endpoint that routes requests to individual servers
-- **Web Interface**: Modern web UI for server configuration and monitoring
-- **Cross-Platform**: Native support for Windows, macOS, and Linux
-- **Simple Configuration**: One MCP config connects to gateway, all servers accessible through it
+## ✨ Features
 
-## Installation
+- **🚀 Quick Server Installation**: Add MCP servers with single commands
+- **🔐 Secure API Key Management**: Encrypted storage with environment variable injection
+- **🌐 Web Interface**: Modern UI for server management and monitoring
+- **⚡ Continuous Server Management**: Auto-start, health monitoring, and restart
+- **🔄 Cross-Platform**: Native binaries for Windows, macOS, and Linux
+- **📦 Multiple Installation Sources**: npm, pip, and custom repositories
+- **🛡️ Secure Credential Storage**: Filesystem-based with restricted permissions
+
+## 📦 Installation
+
+### Quick Install (Recommended)
+
+```bash
+# One-command install for all platforms
+curl -fsSL https://raw.githubusercontent.com/mdarshad-ai/OneMCP/main/install.sh | bash
+```
+
+### Manual Installation
+
+1. **Download** the appropriate binary for your platform from [Releases](https://github.com/mdarshad-ai/OneMCP/releases)
+2. **Make executable**: `chmod +x onemcp`
+3. **Move to PATH**: `sudo mv onemcp /usr/local/bin/` (Linux/macOS) or add to PATH (Windows)
 
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/mcp-manager.git
-cd mcp-manager
+git clone https://github.com/mdarshad-ai/OneMCP.git
+cd OneMCP
 make setup
 make build
 ```
 
-### Pre-built Binaries
+## 🚀 Quick Start
 
-Download the latest release from the [releases page](https://github.com/yourusername/mcp-manager/releases).
-
-## Quick Start
-
-1. **Install an MCP server**:
+1. **Add your first MCP server**:
    ```bash
-   mcp-manager install github @modelcontextprotocol/server-github
+   onemcp add filesystem @modelcontextprotocol/server-filesystem
    ```
 
-2. **Configure credentials**:
+2. **Configure API keys** (if needed):
    ```bash
-   mcp-manager config github GITHUB_PERSONAL_ACCESS_TOKEN ghp_your_token_here
+   onemcp set-key filesystem ALLOWED_DIRECTORIES "/tmp:/home/user"
    ```
 
-3. **Start the gateway**:
+3. **Start the MCP gateway**:
    ```bash
-   mcp-manager start
+   onemcp start
    ```
 
-4. **Configure your MCP client** (VS Code, Claude, etc.) to connect to the gateway.
+4. **Configure your MCP client** to connect to OneMCP gateway.
 
-## Usage
+## 📖 Usage
 
-### Install Servers
+### Server Management
 
 ```bash
-# Install from npm
-mcp-manager install github @modelcontextprotocol/server-github
+# Add servers from npm
+onemcp add github @modelcontextprotocol/server-github
+onemcp add brave-search @modelcontextprotocol/server-brave-search
+onemcp add slack @modelcontextprotocol/server-slack
 
-# Install from pip
-mcp-manager install postgres pip:mcp-server-postgres
-
-# Install from custom source
-mcp-manager install my-server custom:/path/to/server
-```
-
-### Manage Servers
-
-```bash
 # List installed servers
-mcp-manager list
+onemcp list
 
-# Configure server credentials
-mcp-manager config github GITHUB_PERSONAL_ACCESS_TOKEN ghp_xxx
-
-# Start gateway
-mcp-manager start
-
-# Stop gateway
-mcp-manager stop
+# Check server status
+onemcp status
 ```
 
-### Web Interface
+### API Key Management
 
-Access the web interface at `http://localhost:8080` to:
-- Install new servers
-- Configure credentials
-- Monitor server status
-- View logs
+```bash
+# Set API keys for servers
+onemcp set-key github GITHUB_PERSONAL_ACCESS_TOKEN ghp_xxxxxxxxxx
+onemcp set-key brave-search BRAVE_API_KEY your-brave-api-key
+onemcp set-key slack SLACK_BOT_TOKEN xoxb-your-token
 
-## Architecture
+# View configured keys
+onemcp get-keys github
 
-MCP Manager uses a filesystem-based storage system located in `~/.mcp/`:
+# Remove keys
+onemcp remove-key github GITHUB_PERSONAL_ACCESS_TOKEN
+```
+
+### Gateway Control
+
+```bash
+# Start MCP gateway (starts all servers automatically)
+onemcp start
+
+# Start/stop individual servers
+onemcp start-server filesystem
+onemcp stop-server filesystem
+
+# Access web interface
+onemcp web  # Opens at http://localhost:8080
+```
+
+## 🏗️ Architecture
+
+OneMCP uses a filesystem-based storage system in `~/.mcp/`:
 
 ```
 ~/.mcp/
 ├── config.json          # Global configuration
-├── servers/             # Installed server metadata
+├── servers/             # Server metadata & configs
+│   ├── filesystem.json
 │   ├── github.json
-│   └── filesystem.json
-├── credentials/         # API keys and credentials
+│   └── brave-search.json
+├── credentials/         # Encrypted API keys (0600 perms)
+│   ├── filesystem.key
 │   ├── github.key
-│   └── slack.key
-├── logs/               # Server logs
-└── cache/              # Downloaded packages
+│   └── brave-search.key
+├── cache/               # Downloaded packages
+└── logs/               # Server logs
 ```
 
-## Supported MCP Clients
+### Security Features
 
-- **Claude Desktop**: Configure with stdio transport
-- **Cursor**: Use the MCP configuration
-- **VS Code**: Add to `.vscode/mcp.json`
-- **opencode**: Configure gateway endpoint
+- ✅ **Encrypted JSON storage** for API keys
+- ✅ **File permission restrictions** (0600 - owner only)
+- ✅ **Environment variable injection** (not command args)
+- ✅ **Runtime-only key exposure**
+- ✅ **Process isolation** per server
 
-## Development
+## 🖥️ Supported MCP Clients
+
+### opencode
+```json
+// ~/.opencode/mcp-servers.json
+{
+  "mcpServers": {
+    "onemcp": {
+      "command": "/path/to/onemcp",
+      "args": ["start"]
+    }
+  }
+}
+```
+
+### Claude Desktop
+```json
+// ~/Library/Application Support/Claude/claude_desktop_config.json
+{
+  "mcpServers": {
+    "onemcp": {
+      "command": "/path/to/onemcp",
+      "args": ["start"]
+    }
+  }
+}
+```
+
+### Cursor
+```json
+// .cursor/mcp.json or .vscode/mcp.json
+{
+  "mcpServers": {
+    "onemcp": {
+      "command": "/path/to/onemcp",
+      "args": ["start"]
+    }
+  }
+}
+```
+
+## 🛠️ Development
 
 ### Prerequisites
 
-- Go 1.21+
-- Node.js 18+ (for web UI)
-- Make
+- **Go 1.23+**
+- **Make**
+- **Git**
 
 ### Setup
 
 ```bash
-make setup    # Install dependencies
-make build    # Build the binary
-make test     # Run tests
-make run      # Run in development mode
+# Clone repository
+git clone https://github.com/mdarshad-ai/OneMCP.git
+cd OneMCP
+
+# Setup development environment
+make setup
+
+# Build for development
+make build
+
+# Run tests
+make test
+
+# Cross-platform builds
+make build-all  # Creates binaries for Linux, macOS, Windows
 ```
 
 ### Project Structure
 
 ```
-cmd/mcp-manager/        # CLI entry point
-internal/
-├── cmd/               # CLI commands
-├── config/            # Configuration management
-├── storage/           # Filesystem storage
-├── gateway/           # MCP gateway logic
-└── installer/         # Server installation logic
-pkg/                   # Public packages
-web/                   # Web interface
-scripts/              # Build and deployment scripts
+onemcp/
+├── cmd/onemcp/              # CLI entry point
+├── internal/
+│   ├── cmd/                 # CLI command implementations
+│   ├── config/              # Configuration management
+│   ├── storage/             # Filesystem storage layer
+│   ├── gateway/             # MCP gateway & server management
+│   ├── installer/           # Package installation logic
+│   ├── mcp-server/          # MCP protocol server
+│   └── web/                 # Web interface
+├── pkg/                     # Public packages (future)
+├── Makefile                 # Build automation
+├── install.sh              # Installation script
+├── RELEASE_NOTES.md        # Release notes
+└── README.md               # This file
 ```
 
-## Contributing
+## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Make** your changes and add tests
+4. **Commit**: `git commit -m 'Add amazing feature'`
+5. **Push**: `git push origin feature/amazing-feature`
+6. **Open** a Pull Request
 
-## License
+### Development Guidelines
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- Follow Go conventions and best practices
+- Add tests for new features
+- Update documentation
+- Ensure cross-platform compatibility
 
-## Roadmap
+## 📋 Roadmap
 
-- [x] MCP server auto-discovery
-- [x] Web interface for server management
-- [x] Internet deployment & hosting
-- [ ] Cross-platform installer packages
-- [ ] Plugin system for custom server types
-- [ ] Server health monitoring
-- [ ] Backup/restore functionality
+- [x] **Core Infrastructure** - CLI and basic server management
+- [x] **Web Interface** - Modern UI for server management
+- [x] **API Key Management** - Secure credential storage
+- [x] **Continuous Server Management** - Auto-start and health monitoring
+- [x] **Cross-Platform Builds** - Native binaries for all platforms
+- [ ] **Package Manager Integration** - Homebrew, APT, Chocolatey
+- [ ] **Plugin System** - Custom server types and extensions
+- [ ] **Advanced Monitoring** - Metrics and performance tracking
+- [ ] **Backup/Restore** - Configuration backup and recovery
+- [ ] **Docker Support** - Containerized deployments
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Model Context Protocol](https://modelcontextprotocol.io/) - The protocol that makes this possible
+- [Official Go SDK](https://github.com/modelcontextprotocol/go-sdk) - MCP implementation
+- [Cobra](https://github.com/spf13/cobra) - CLI framework
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/mdarshad-ai/OneMCP/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/mdarshad-ai/OneMCP/discussions)
+- **Documentation**: See [INSTALL.md](INSTALL.md) and [RELEASE_NOTES.md](RELEASE_NOTES.md)
 
 ---
 
-**Status**: Early development - Phase 1 (Core Infrastructure)</content>
+**OneMCP** - *Simplifying MCP server management for everyone!* 🎉</content>
 <parameter name="filePath">mcp-manager/README.md

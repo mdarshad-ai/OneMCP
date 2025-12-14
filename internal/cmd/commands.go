@@ -11,12 +11,12 @@ import (
 
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
-	"github.com/yourusername/onemcp/internal/config"
-	"github.com/yourusername/onemcp/internal/gateway"
-	"github.com/yourusername/onemcp/internal/installer"
-	"github.com/yourusername/onemcp/internal/mcp-server"
-	"github.com/yourusername/onemcp/internal/web"
-	"github.com/yourusername/onemcp/internal/storage"
+	"github.com/mdarshad-ai/OneMCP/internal/config"
+	"github.com/mdarshad-ai/OneMCP/internal/gateway"
+	"github.com/mdarshad-ai/OneMCP/internal/installer"
+	"github.com/mdarshad-ai/OneMCP/internal/mcp-server"
+	"github.com/mdarshad-ai/OneMCP/internal/web"
+	"github.com/mdarshad-ai/OneMCP/internal/storage"
 )
 
 var (

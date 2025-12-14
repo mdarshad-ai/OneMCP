@@ -1,0 +1,46 @@
+Starting MCP gateway...
+DEBUG: initConfig completed
+DEBUG: Creating gateway...
+2025/12/14 06:45:18 DEBUG: Loading servers...
+DEBUG: ListServerConfigs called, baseDir: /home/arshad/.mcp
+DEBUG: Pattern: /home/arshad/.mcp/servers/*.json
+DEBUG: Found 4 matches
+DEBUG: Reading /home/arshad/.mcp/servers/filesystem.json
+DEBUG: Reading /home/arshad/.mcp/servers/github-server.json
+DEBUG: Reading /home/arshad/.mcp/servers/github.json
+DEBUG: Reading /home/arshad/.mcp/servers/test-server.json
+DEBUG: Returning 4 configs
+2025/12/14 06:45:18 DEBUG: Found 4 server configs
+2025/12/14 06:45:18 Loaded 4 MCP servers
+DEBUG: Gateway created
+2025/12/14 06:45:18 Starting MCP Gateway on 127.0.0.1:5234
+2025/12/14 06:45:18 Starting all installed MCP servers...
+2025/12/14 06:45:18 Found 4 servers to start: [filesystem github-server github test-server]
+2025/12/14 06:45:18 Attempting to start server: filesystem
+2025/12/14 06:45:18 Starting server filesystem with command: /usr/bin/node [/home/arshad/.mcp/cache/npm/@modelcontextprotocol_server-filesystem/lib/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js /tmp]
+2025/12/14 06:45:18 Started MCP server: filesystem (PID: 95981)
+2025/12/14 06:45:18 Successfully started server: filesystem
+2025/12/14 06:45:18 Attempting to start server: github-server
+2025/12/14 06:45:18 Starting server github-server with command: /home/arshad/.mcp/cache/git/servers/index.js []
+2025/12/14 06:45:18 Failed to start server github-server: failed to start server github-server: fork/exec /home/arshad/.mcp/cache/git/servers/index.js: no such file or directory
+2025/12/14 06:45:18 Attempting to start server: github
+2025/12/14 06:45:18 Starting server github with command: /usr/bin/node [/home/arshad/.mcp/cache/npm/@modelcontextprotocol_server-github/lib/node_modules/@modelcontextprotocol/server-github/dist/index.js]
+2025/12/14 06:45:18 Started MCP server: github (PID: 95983)
+2025/12/14 06:45:18 Successfully started server: github
+2025/12/14 06:45:18 Attempting to start server: test-server
+2025/12/14 06:45:18 Failed to start server test-server: failed to build command: invalid server path: 
+2025/12/14 06:45:18 Warning: Failed to start some servers: failed to start servers: github-server: failed to start server github-server: fork/exec /home/arshad/.mcp/cache/git/servers/index.js: no such file or directory; test-server: failed to build command: invalid server path: 
+DEBUG: Creating MCP server service...
+DEBUG: NewServer called
+DEBUG: Creating MCP server...
+DEBUG: Adding list_servers tool...
+DEBUG: MCP server created successfully
+DEBUG: MCP server created
+DEBUG: Creating web server...
+DEBUG: Web server created
+MCP gateway started successfully
+2025/12/14 06:45:20 Starting web server on port 8080
+2025/12/14 06:45:20 Web server starting on 0.0.0.0:8080
+Web interface: http://68.183.188.203:8080
+Ready to accept MCP connections on stdio
+Press Ctrl+C to stop

@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/yourusername/onemcp/internal/storage"
+	"github.com/mdarshad-ai/OneMCP/internal/storage"
 )
 
 // Installer handles MCP server installation from various sources

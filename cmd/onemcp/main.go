@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/yourusername/onemcp/internal/cmd"
+	"github.com/mdarshad-ai/OneMCP/internal/cmd"
 )
 
 var rootCmd = &cobra.Command{
