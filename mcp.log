@@ -1,0 +1,28 @@
+Starting MCP gateway...
+DEBUG: initConfig completed
+DEBUG: Creating gateway...
+2025/12/14 05:13:22 DEBUG: Loading servers...
+DEBUG: ListServerConfigs called, baseDir: /home/arshad/.mcp
+DEBUG: Pattern: /home/arshad/.mcp/servers/*.json
+DEBUG: Found 3 matches
+DEBUG: Reading /home/arshad/.mcp/servers/filesystem.json
+DEBUG: Reading /home/arshad/.mcp/servers/github-server.json
+DEBUG: Reading /home/arshad/.mcp/servers/test-server.json
+DEBUG: Returning 3 configs
+2025/12/14 05:13:22 DEBUG: Found 3 server configs
+2025/12/14 05:13:22 Loaded 3 MCP servers
+DEBUG: Gateway created
+DEBUG: Creating MCP server service...
+DEBUG: NewServer called
+DEBUG: Creating MCP server...
+DEBUG: Adding list_servers tool...
+DEBUG: MCP server created successfully
+DEBUG: MCP server created
+DEBUG: Creating web server...
+DEBUG: Web server created
+MCP gateway started successfully
+2025/12/14 05:13:22 Starting web server on port 8080
+2025/12/14 05:13:22 Web server starting on 0.0.0.0:8080
+Web interface: http://68.183.188.203:8080
+Ready to accept MCP connections on stdio
+Press Ctrl+C to stop

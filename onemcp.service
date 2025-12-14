@@ -1,0 +1,17 @@
+[Unit]
+Description=OneMCP
+After=network.target
+
+[Service]
+Type=simple
+User=arshad
+WorkingDirectory=/home/arshad/onemcp
+ExecStart=/home/arshad/onemcp/onemcp web
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=onemcp
+
+[Install]
+WantedBy=multi-user.target
