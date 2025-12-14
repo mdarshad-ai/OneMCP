@@ -224,3 +224,8 @@ func (fs *FileStorage) GetCredentialsDir() string {
 func (fs *FileStorage) GetLogsDir() string {
 	return filepath.Join(fs.baseDir, "logs")
 }
+
+// GetCredentialsPath returns the path to a server's credentials file
+func (fs *FileStorage) GetCredentialsPath(serverName string) string {
+	return filepath.Join(fs.GetCredentialsDir(), serverName+".key")
+}

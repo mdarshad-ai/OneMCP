@@ -18,7 +18,11 @@ just one MCP connection in their tools (Claude, Cursor, opencode) while accessin
 
 func init() {
 	rootCmd.AddCommand(cmd.NewInstallCmd())
+	rootCmd.AddCommand(cmd.NewAddCmd())
 	rootCmd.AddCommand(cmd.NewListCmd())
+	rootCmd.AddCommand(cmd.NewSetKeyCmd())
+	rootCmd.AddCommand(cmd.NewGetKeysCmd())
+	rootCmd.AddCommand(cmd.NewRemoveKeyCmd())
 	rootCmd.AddCommand(cmd.NewConfigCmd())
 	rootCmd.AddCommand(cmd.NewStartCmd())
 	rootCmd.AddCommand(cmd.NewStartServerCmd())

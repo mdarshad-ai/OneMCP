@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"syscall"
+	"time"
 
 	"github.com/yourusername/onemcp/internal/config"
 	"github.com/yourusername/onemcp/internal/storage"
@@ -73,11 +75,97 @@ func (g *Gateway) loadServers() {
 	log.Printf("Loaded %d MCP servers", len(g.servers))
 }
 
-// Start starts the MCP gateway (loads servers but doesn't run MCP protocol)
+// startAllServers starts all installed MCP servers
+func (g *Gateway) startAllServers() error {
+	g.serversMux.RLock()
+	serverNames := make([]string, 0, len(g.servers))
+	for name := range g.servers {
+		serverNames = append(serverNames, name)
+	}
+	g.serversMux.RUnlock()
+
+	log.Printf("Found %d servers to start: %v", len(serverNames), serverNames)
+
+	var errors []string
+	for _, name := range serverNames {
+		log.Printf("Attempting to start server: %s", name)
+		if err := g.StartServer(name); err != nil {
+			// Only log as error if it's not "already running"
+			if !strings.Contains(err.Error(), "already running") {
+				log.Printf("Failed to start server %s: %v", name, err)
+				errors = append(errors, fmt.Sprintf("%s: %v", name, err))
+			} else {
+				log.Printf("Server %s already running", name)
+			}
+		} else {
+			log.Printf("Successfully started server: %s", name)
+		}
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("failed to start servers: %s", strings.Join(errors, "; "))
+	}
+	return nil
+}
+
+// monitorServers monitors server health and restarts failed servers
+func (g *Gateway) monitorServers(ctx context.Context) {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			g.checkAndRestartServers()
+		}
+	}
+}
+
+// checkAndRestartServers checks all servers and restarts any that have stopped
+func (g *Gateway) checkAndRestartServers() {
+	g.serversMux.RLock()
+	serverNames := make([]string, 0, len(g.servers))
+	for name := range g.servers {
+		serverNames = append(serverNames, name)
+	}
+	g.serversMux.RUnlock()
+
+	for _, name := range serverNames {
+		g.serversMux.RLock()
+		process, exists := g.servers[name]
+		g.serversMux.RUnlock()
+
+		if !exists {
+			continue
+		}
+
+		if !process.IsRunning() {
+			log.Printf("Server %s is not running, attempting to restart...", name)
+			if err := g.StartServer(name); err != nil {
+				log.Printf("Failed to restart server %s: %v", name, err)
+			} else {
+				log.Printf("Successfully restarted server: %s", name)
+			}
+		}
+	}
+}
+
+// Start starts the MCP gateway and all installed servers
 func (g *Gateway) Start(ctx context.Context) error {
 	log.Printf("Starting MCP Gateway on %s:%d", g.config.Gateway.Host, g.config.Gateway.Port)
 
-	// Just keep the gateway running (MCP protocol is handled separately)
+	// Start all installed servers
+	log.Printf("Starting all installed MCP servers...")
+	if err := g.startAllServers(); err != nil {
+		log.Printf("Warning: Failed to start some servers: %v", err)
+	}
+
+	// Start server health monitoring
+	go g.monitorServers(ctx)
+
+	// Keep the gateway running
 	<-ctx.Done()
 	return nil
 }
@@ -93,7 +181,8 @@ func (g *Gateway) StartServer(serverName string) error {
 	}
 
 	if process.IsRunning() {
-		return fmt.Errorf("server %s is already running", serverName)
+		log.Printf("Server %s is already running", serverName)
+		return nil // Not an error, just already running
 	}
 
 	// Build the command based on server type and configuration
@@ -306,7 +395,13 @@ func (g *Gateway) getServerStatus(serverName string) string {
 func (p *ServerProcess) IsRunning() bool {
 	p.runningMux.RLock()
 	defer p.runningMux.RUnlock()
-	return p.running
+
+	if !p.running || p.Cmd == nil || p.Cmd.Process == nil {
+		return false
+	}
+
+	// Check if the process is actually still running
+	return p.Cmd.Process.Signal(syscall.Signal(0)) == nil
 }
 
 // SendMessage sends a message to the server process

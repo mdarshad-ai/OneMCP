@@ -186,12 +186,216 @@ func NewListCmd() *cobra.Command {
 	return cmd
 }
 
-// NewConfigCmd creates the config command
+// NewAddCmd creates the add command for quick server addition
+func NewAddCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "add [server-name] [package-name]",
+		Short: "Add an MCP server from npm",
+		Long: `Quickly add an MCP server from npm registry.
+
+Examples:
+  onemcp add filesystem @modelcontextprotocol/server-filesystem
+  onemcp add github @modelcontextprotocol/server-github
+  onemcp add slack @modelcontextprotocol/server-slack`,
+		Args: cobra.ExactArgs(2),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return initConfig()
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			name := args[0]
+			packageName := args[1]
+
+			fmt.Printf("Adding MCP server '%s' from npm package '%s'...\n", name, packageName)
+
+			// Check if server already exists
+			if _, err := store.LoadServerConfig(name); err == nil {
+				return fmt.Errorf("server '%s' is already added", name)
+			}
+
+			// Create installer
+			inst := installer.NewInstaller(store.GetCacheDir())
+
+			// Install from NPM
+			result, err := inst.InstallFromNPM(packageName)
+			if err != nil {
+				return fmt.Errorf("installation failed: %w", err)
+			}
+
+			if !result.Success {
+				return fmt.Errorf("installation failed: %s", result.Error)
+			}
+
+			// Create server configuration
+			serverConfig := &storage.ServerConfig{
+				Name:         name,
+				Type:         result.Type,
+				Package:      result.Package,
+				Version:      result.Version,
+				InstalledAt:  time.Now(),
+				Status:       storage.StatusInstalled,
+				Config:       make(map[string]interface{}),
+				Path:         result.InstallPath,
+				Dependencies: make(map[string]string),
+			}
+
+			// Add runtime dependencies
+			serverConfig.Dependencies["node"] = ">=18.0.0"
+
+			if err := store.SaveServerConfig(serverConfig); err != nil {
+				return fmt.Errorf("failed to save server config: %w", err)
+			}
+
+			fmt.Printf("Successfully added MCP server '%s' (version: %s)\n", name, result.Version)
+			fmt.Printf("Installation path: %s\n", result.InstallPath)
+			fmt.Printf("\nTo configure API keys if needed:\n")
+			fmt.Printf("  onemcp set-key %s [KEY_NAME] [KEY_VALUE]\n", name)
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+// NewSetKeyCmd creates the set-key command for API key management
+func NewSetKeyCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set-key [server-name] [key-name] [key-value]",
+		Short: "Set API key for an MCP server",
+		Long: `Set API keys and credentials required by MCP servers.
+
+Examples:
+  onemcp set-key github GITHUB_PERSONAL_ACCESS_TOKEN ghp_xxxxxxxxxx
+  onemcp set-key slack SLACK_BOT_TOKEN xoxb-xxxxxxxxxx
+  onemcp set-key tavily TAVILY_API_KEY tvly-xxxxxxxxxx
+
+The keys will be securely stored and automatically provided to the server when it starts.`,
+		Args: cobra.ExactArgs(3),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return initConfig()
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			serverName := args[0]
+			keyName := args[1]
+			keyValue := args[2]
+
+			// Check if server exists
+			if _, err := store.LoadServerConfig(serverName); err != nil {
+				return fmt.Errorf("server '%s' not found. Add it first with 'onemcp add %s [package]'", serverName, serverName)
+			}
+
+			// Load existing credentials or create new
+			creds, err := store.LoadCredentials(serverName)
+			if err != nil {
+				// Create new credentials if they don't exist
+				creds = &storage.Credential{
+					Data: make(map[string]string),
+				}
+			}
+
+			// Set the credential
+			creds.Data[keyName] = keyValue
+
+			// Save credentials
+			if err := store.SaveCredentials(serverName, creds); err != nil {
+				return fmt.Errorf("failed to save API key: %w", err)
+			}
+
+			fmt.Printf("Successfully set API key '%s' for server '%s'\n", keyName, serverName)
+			fmt.Printf("Key stored securely in %s\n", store.GetCredentialsPath(serverName))
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+// NewGetKeysCmd creates the get-keys command to view configured keys
+func NewGetKeysCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get-keys [server-name]",
+		Short: "View configured API keys for a server",
+		Long: `View all configured API keys for a specific MCP server.
+
+Example:
+  onemcp get-keys github`,
+		Args: cobra.ExactArgs(1),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return initConfig()
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			serverName := args[0]
+
+			// Load credentials
+			creds, err := store.LoadCredentials(serverName)
+			if err != nil {
+				fmt.Printf("No API keys configured for server '%s'\n", serverName)
+				return nil
+			}
+
+			fmt.Printf("API keys for server '%s':\n", serverName)
+			for key := range creds.Data {
+				fmt.Printf("  - %s: [CONFIGURED]\n", key)
+			}
+
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+// NewRemoveKeyCmd creates the remove-key command
+func NewRemoveKeyCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "remove-key [server-name] [key-name]",
+		Short: "Remove an API key for a server",
+		Long: `Remove a specific API key for an MCP server.
+
+Example:
+  onemcp remove-key github GITHUB_PERSONAL_ACCESS_TOKEN`,
+		Args: cobra.ExactArgs(2),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return initConfig()
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			serverName := args[0]
+			keyName := args[1]
+
+			// Load existing credentials
+			creds, err := store.LoadCredentials(serverName)
+			if err != nil {
+				return fmt.Errorf("no credentials found for server '%s'", serverName)
+			}
+
+			// Check if key exists
+			if _, exists := creds.Data[keyName]; !exists {
+				return fmt.Errorf("API key '%s' not found for server '%s'", keyName, serverName)
+			}
+
+			// Remove the key
+			delete(creds.Data, keyName)
+
+			// Save updated credentials
+			if err := store.SaveCredentials(serverName, creds); err != nil {
+				return fmt.Errorf("failed to update credentials: %w", err)
+			}
+
+			fmt.Printf("Successfully removed API key '%s' for server '%s'\n", keyName, serverName)
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+// NewConfigCmd creates the config command (legacy, kept for compatibility)
 func NewConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config [server-name] [key] [value]",
-		Short: "Configure server credentials",
+		Short: "Configure server credentials (legacy)",
 		Long: `Configure API keys and credentials for an MCP server.
+
+Note: Use 'set-key' command instead for better API key management.
 
 Example:
   onemcp config github GITHUB_PERSONAL_ACCESS_TOKEN ghp_xxxxxxxxxx`,
@@ -222,6 +426,7 @@ Example:
 			}
 
 			fmt.Printf("Successfully configured credential for server '%s'\n", name)
+			fmt.Printf("Note: Consider using 'onemcp set-key' for better API key management.\n")
 			return nil
 		},
 	}
@@ -251,6 +456,19 @@ func NewStartCmd() *cobra.Command {
 			fmt.Println("DEBUG: Creating gateway...")
 			gw := gateway.NewGateway(cfg, store)
 			fmt.Println("DEBUG: Gateway created")
+
+			// Start the gateway (which starts all servers)
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			go func() {
+				if err := gw.Start(ctx); err != nil {
+					log.Printf("Gateway error: %v", err)
+				}
+			}()
+
+			// Give gateway time to start servers
+			time.Sleep(2 * time.Second)
 
 			// Create MCP server
 			fmt.Println("DEBUG: Creating MCP server service...")
