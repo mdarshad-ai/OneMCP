@@ -62,21 +62,24 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCP Manager</title>
+    <title>OneMCP - MCP Server Manager</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; }
-        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .navbar-content { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
-        .navbar h1 { font-size: 1.8rem; font-weight: 600; }
-        .navbar p { opacity: 0.9; font-size: 0.9rem; }
-        .tabs { background: white; border-bottom: 1px solid #e9ecef; }
-        .tab-buttons { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; }
-        .tab-btn { padding: 15px 25px; border: none; background: none; cursor: pointer; font-size: 1rem; font-weight: 500; color: #6c757d; border-bottom: 3px solid transparent; transition: all 0.3s; }
-        .tab-btn.active { color: #007bff; border-bottom-color: #007bff; }
-        .tab-btn:hover { color: #007bff; background: #f8f9fa; }
-        .tab-content { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+        .ribbon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        .ribbon-content { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        .ribbon h1 { font-size: 1.8rem; font-weight: 600; }
+        .ribbon .status { opacity: 0.9; font-size: 0.9rem; }
+        .nav-tabs { background: white; border-bottom: 2px solid #e9ecef; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .nav-tabs-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .nav-tabs-list { display: flex; list-style: none; margin: 0; padding: 0; }
+        .nav-tab { position: relative; }
+        .nav-tab-btn { padding: 20px 30px; border: none; background: none; cursor: pointer; font-size: 1.1rem; font-weight: 600; color: #6c757d; border-bottom: 4px solid transparent; transition: all 0.3s; display: flex; align-items: center; gap: 10px; }
+        .nav-tab-btn.active { color: #007bff; border-bottom-color: #007bff; background: rgba(0, 123, 255, 0.05); }
+        .nav-tab-btn:hover { color: #007bff; background: rgba(0, 123, 255, 0.05); }
+        .nav-tab-icon { font-size: 1.2rem; }
+        .main-content { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
         .card { background: white; border-radius: 10px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 20px; }
@@ -125,33 +128,46 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="navbar-content">
+    <!-- Ribbon Navigation -->
+    <div class="ribbon">
+        <div class="ribbon-content">
             <div>
-                <h1><i class="fas fa-server"></i> MCP Manager</h1>
-                <p>Centralized MCP Server Management & Gateway</p>
+                <h1><i class="fas fa-cubes"></i> OneMCP</h1>
+                <div class="status">Centralized MCP Server Management & Gateway</div>
             </div>
             <div>
-                <small>Status: <span id="statusIndicator" style="color: #28a745;">Online</span></small>
+                <small>Status: <span id="statusIndicator" style="color: #28a745;"><i class="fas fa-circle"></i> Online</span></small>
             </div>
-        </div>
-    </nav>
-
-    <div class="tabs">
-        <div class="tab-buttons">
-            <button class="tab-btn active" onclick="showTab('install')">
-                <i class="fas fa-plus-circle"></i> Install
-            </button>
-            <button class="tab-btn" onclick="showTab('gateway')">
-                <i class="fas fa-server"></i> MCP Gateway
-            </button>
-            <button class="tab-btn" onclick="showTab('clients')">
-                <i class="fas fa-desktop"></i> Clients
-            </button>
         </div>
     </div>
 
-    <div class="tab-content">
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <div class="nav-tabs-container">
+            <ul class="nav-tabs-list">
+                <li class="nav-tab">
+                    <button class="nav-tab-btn active" onclick="showTab('install')">
+                        <i class="fas fa-plus-circle nav-tab-icon"></i>
+                        <span>Install</span>
+                    </button>
+                </li>
+                <li class="nav-tab">
+                    <button class="nav-tab-btn" onclick="showTab('gateway')">
+                        <i class="fas fa-server nav-tab-icon"></i>
+                        <span>MCP Gateway</span>
+                    </button>
+                </li>
+                <li class="nav-tab">
+                    <button class="nav-tab-btn" onclick="showTab('clients')">
+                        <i class="fas fa-desktop nav-tab-icon"></i>
+                        <span>Clients</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
         <!-- Install Tab -->
         <div id="install" class="tab-pane active">
             <div class="card">
@@ -248,33 +264,59 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
     <script>
         // Tab switching
         function showTab(tabName) {
-            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            // Hide all tab panes
+            var panes = document.querySelectorAll('.tab-pane');
+            for (var i = 0; i < panes.length; i++) {
+                panes[i].classList.remove('active');
+            }
 
+            // Remove active class from all tab buttons
+            var buttons = document.querySelectorAll('.nav-tab-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+
+            // Show the selected tab pane
+            var selectedPane = document.getElementById(tabName);
+            if (selectedPane) {
+                selectedPane.classList.add('active');
+            }
+
+            // Add active class to the button that corresponds to this tab
+            var buttons = document.querySelectorAll('.nav-tab-btn');
+            for (var i = 0; i < buttons.length; i++) {
+                var btn = buttons[i];
+                if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabName)) {
+                    btn.classList.add('active');
+                    break;
+                }
+            }
+
+            // Load servers when gateway tab is selected
             if (tabName === 'gateway') {
                 loadServers();
             }
         }
 
         // Load servers
-        async function loadServers() {
-            const serverList = document.getElementById('serverList');
+        function loadServers() {
+            var serverList = document.getElementById('serverList');
             serverList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Loading servers...</p></div>';
 
-            try {
-                const response = await fetch('/api/servers');
-                const servers = await response.json();
+            fetch('/api/servers')
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(servers) {
+                    if (servers.length === 0) {
+                        serverList.innerHTML = '<div class="alert alert-secondary"><i class="fas fa-info-circle"></i> No servers installed yet. Go to the Install tab to add your first server.</div>';
+                        return;
+                    }
 
-                if (servers.length === 0) {
-                    serverList.innerHTML = '<div class="alert alert-secondary"><i class="fas fa-info-circle"></i> No servers installed yet. Go to the Install tab to add your first server.</div>';
-                    return;
-                }
-
-                serverList.innerHTML = '<div class="server-grid">' +
-                    servers.map(server =>
-                        '<div class="server-card">' +
+                    var html = '<div class="server-grid">';
+                    for (var i = 0; i < servers.length; i++) {
+                        var server = servers[i];
+                        html += '<div class="server-card">' +
                             '<div class="server-info">' +
                                 '<h4><i class="fas fa-server"></i> ' + server.name + '</h4>' +
                                 '<div class="server-meta">' + server.type + ' • v' + server.version + '</div>' +
@@ -287,101 +329,109 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
                                 '<button class="btn btn-secondary" onclick="viewLogs(\'' + server.name + '\')"><i class="fas fa-eye"></i> Logs</button>' +
                                 '<button class="btn btn-danger" onclick="removeServer(\'' + server.name + '\')"><i class="fas fa-trash"></i> Remove</button>' +
                             '</div>' +
-                        '</div>'
-                    ).join('') +
-                    '</div>';
-            } catch (error) {
-                serverList.innerHTML = '<div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> Error loading servers: ' + error.message + '</div>';
-            }
+                        '</div>';
+                    }
+                    html += '</div>';
+                    serverList.innerHTML = html;
+                })
+                .catch(function(error) {
+                    serverList.innerHTML = '<div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> Error loading servers: ' + error.message + '</div>';
+                });
         }
 
         // Add server form
-        document.getElementById('addServerForm').addEventListener('submit', async (e) => {
+        document.getElementById('addServerForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const name = document.getElementById('serverName').value;
-            const type = document.getElementById('serverType').value;
-            const source = document.getElementById('serverSource').value;
+            var name = document.getElementById('serverName').value;
+            var type = document.getElementById('serverType').value;
+            var source = document.getElementById('serverSource').value;
 
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
+            var submitBtn = e.target.querySelector('button[type="submit"]');
+            var originalText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Installing...';
             submitBtn.disabled = true;
 
-            try {
-                const response = await fetch('/api/servers', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, type, source })
+            fetch('/api/servers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, type: type, source: source })
+            })
+                .then(function(response) {
+                    if (response.ok) {
+                        showAlert('Server installed successfully!', 'success');
+                        document.getElementById('addServerForm').reset();
+                        loadServers();
+                    } else {
+                        var error = response.text();
+                        showAlert('Failed to install server: ' + error, 'error');
+                    }
+                })
+                .catch(function(error) {
+                    showAlert('Error: ' + error.message, 'error');
+                })
+                .finally(function() {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
                 });
-
-                if (response.ok) {
-                    showAlert('Server installed successfully!', 'success');
-                    document.getElementById('addServerForm').reset();
-                } else {
-                    const error = await response.text();
-                    showAlert('Failed to install server: ' + error, 'error');
-                }
-            } catch (error) {
-                showAlert('Error: ' + error.message, 'error');
-            } finally {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
         });
 
         // Server actions
-        async function startServer(name) {
-            await serverAction(name, 'start', 'Starting server...');
+        function startServer(name) {
+            serverAction(name, 'start', 'Starting server...');
         }
 
-        async function stopServer(name) {
-            await serverAction(name, 'stop', 'Stopping server...');
+        function stopServer(name) {
+            serverAction(name, 'stop', 'Stopping server...');
         }
 
-        async function serverAction(name, action, loadingText) {
-            const btn = event.target;
-            const originalText = btn.innerHTML;
+        function serverAction(name, action, loadingText) {
+            var btn = event.target;
+            var originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + loadingText;
             btn.disabled = true;
 
-            try {
-                const response = await fetch('/api/servers/' + name + '/' + action, { method: 'POST' });
-                if (response.ok) {
-                    loadServers();
-                    showAlert('Server ' + action + ' successful!', 'success');
-                } else {
-                    showAlert('Failed to ' + action + ' server', 'error');
-                }
-            } catch (error) {
-                showAlert('Error: ' + error.message, 'error');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+            fetch('/api/servers/' + name + '/' + action, { method: 'POST' })
+                .then(function(response) {
+                    if (response.ok) {
+                        loadServers();
+                        showAlert('Server ' + action + ' successful!', 'success');
+                    } else {
+                        showAlert('Failed to ' + action + ' server', 'error');
+                    }
+                })
+                .catch(function(error) {
+                    showAlert('Error: ' + error.message, 'error');
+                })
+                .finally(function() {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
         }
 
-        async function removeServer(name) {
+        function removeServer(name) {
             if (!confirm('Are you sure you want to remove the server "' + name + '"? This action cannot be undone.')) return;
 
-            const btn = event.target;
-            const originalText = btn.innerHTML;
+            var btn = event.target;
+            var originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
             btn.disabled = true;
 
-            try {
-                const response = await fetch('/api/servers/' + name, { method: 'DELETE' });
-                if (response.ok) {
-                    loadServers();
-                    showAlert('Server removed successfully!', 'success');
-                } else {
-                    showAlert('Failed to remove server', 'error');
-                }
-            } catch (error) {
-                showAlert('Error: ' + error.message, 'error');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+            fetch('/api/servers/' + name, { method: 'DELETE' })
+                .then(function(response) {
+                    if (response.ok) {
+                        loadServers();
+                        showAlert('Server removed successfully!', 'success');
+                    } else {
+                        showAlert('Failed to remove server', 'error');
+                    }
+                })
+                .catch(function(error) {
+                    showAlert('Error: ' + error.message, 'error');
+                })
+                .finally(function() {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
         }
 
         function viewLogs(name) {
@@ -391,37 +441,97 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
         // Client configuration
         function configureClient(client) {
-            let instructions = '';
+            var title = '';
+            var instructions = '';
             switch(client) {
                 case 'cursor':
-                    instructions = 'To configure Cursor to use this MCP gateway:\\n\\n1. Open Cursor settings\\n2. Go to MCP settings\\n3. Add server configuration:\\n   Command: onemcp\\n   Args: ["start"]\\n4. Restart Cursor';
+                    title = 'Configure Cursor';
+                    instructions = '<strong>Steps to configure Cursor:</strong><br><br>' +
+                        '1. Open Cursor settings (Cmd/Ctrl + ,)<br>' +
+                        '2. Go to "MCP" section<br>' +
+                        '3. Click "Add Server"<br>' +
+                        '4. Enter configuration:<br>' +
+                        '   <code>Name: OneMCP Gateway<br>' +
+                        '   Command: onemcp<br>' +
+                        '   Args: ["start"]</code><br>' +
+                        '5. Restart Cursor<br><br>' +
+                        '<em>Note: Make sure OneMCP is running on your server.</em>';
                     break;
                 case 'claude':
-                    instructions = 'To configure Claude Desktop:\\n\\n1. Open Claude Desktop\\n2. Go to Settings > MCP\\n3. Add server:\\n   Name: MCP Manager\\n   Command: onemcp\\n   Args: ["start"]\\n4. Restart Claude Desktop';
+                    title = 'Configure Claude Desktop';
+                    instructions = '<strong>Steps to configure Claude Desktop:</strong><br><br>' +
+                        '1. Open Claude Desktop<br>' +
+                        '2. Go to Settings > MCP Servers<br>' +
+                        '3. Click "Add Server"<br>' +
+                        '4. Enter configuration:<br>' +
+                        '   <code>Name: OneMCP Gateway<br>' +
+                        '   Command: onemcp<br>' +
+                        '   Args: ["start"]<br>' +
+                        '   Environment: {}</code><br>' +
+                        '5. Restart Claude Desktop<br><br>' +
+                        '<em>Note: Ensure OneMCP is accessible from your local machine.</em>';
                     break;
                 case 'opencode':
-                    instructions = 'opencode is already configured to use this MCP gateway! 🎉';
+                    title = 'OneMCP Status';
+                    instructions = '<strong>opencode is already configured!</strong><br><br>' +
+                        'opencode automatically detects and connects to MCP servers configured in your <code>~/.opencode/mcp-servers.json</code> file.<br><br>' +
+                        'Your OneMCP gateway is already listed and active. You can start using MCP tools in opencode immediately!';
                     break;
             }
-            alert(instructions);
+
+            // Create modal dialog
+            var modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+            modal.innerHTML = '<div style="background: white; padding: 30px; border-radius: 10px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">' +
+                '<h3 style="margin-top: 0; color: #333;"><i class="fas fa-cog"></i> ' + title + '</h3>' +
+                '<div style="margin: 20px 0; line-height: 1.6;">' + instructions + '</div>' +
+                '<div style="text-align: right;">' +
+                    '<button onclick="this.closest(\'div\').parentElement.remove()" class="btn btn-secondary">' +
+                        '<i class="fas fa-times"></i> Close' +
+                    '</button>' +
+                '</div>' +
+            '</div>';
+            document.body.appendChild(modal);
+        }
+
+        // Check MCP server status
+        function checkServerStatus() {
+            fetch('/api/servers')
+                .then(function(response) {
+                    if (response.ok) {
+                        document.getElementById('statusIndicator').innerHTML = '<i class="fas fa-circle"></i> Online';
+                        document.getElementById('statusIndicator').style.color = '#28a745';
+                    } else {
+                        document.getElementById('statusIndicator').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Issues';
+                        document.getElementById('statusIndicator').style.color = '#ffc107';
+                    }
+                })
+                .catch(function(error) {
+                    document.getElementById('statusIndicator').innerHTML = '<i class="fas fa-times-circle"></i> Offline';
+                    document.getElementById('statusIndicator').style.color = '#dc3545';
+                });
         }
 
         // Alert system
         function showAlert(message, type) {
-            const alertDiv = document.createElement('div');
+            var alertDiv = document.createElement('div');
             alertDiv.className = 'alert alert-' + type;
             alertDiv.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-triangle') + '"></i> ' + message;
 
-            const container = document.querySelector('.tab-content');
+            var container = document.querySelector('.main-content');
             container.insertBefore(alertDiv, container.firstChild);
 
-            setTimeout(() => {
+            setTimeout(function() {
                 alertDiv.remove();
             }, 5000);
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Check server status
+            checkServerStatus();
+            setInterval(checkServerStatus, 30000); // Check every 30 seconds
+
             // Load gateway tab data when first accessed
             showTab('install');
         });
@@ -431,8 +541,6 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	w.Write([]byte(html))
 }
-
-// handleServers handles the /api/servers endpoint
 func (s *Server) handleServers(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
