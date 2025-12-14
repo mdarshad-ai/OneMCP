@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
-	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/spf13/cobra"
 	"github.com/mdarshad-ai/OneMCP/internal/config"
 	"github.com/mdarshad-ai/OneMCP/internal/gateway"
 	"github.com/mdarshad-ai/OneMCP/internal/installer"
 	"github.com/mdarshad-ai/OneMCP/internal/mcp-server"
-	"github.com/mdarshad-ai/OneMCP/internal/web"
 	"github.com/mdarshad-ai/OneMCP/internal/storage"
+	"github.com/mdarshad-ai/OneMCP/internal/web"
+	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -439,7 +439,14 @@ func NewStartCmd() *cobra.Command {
 	var cfg *config.Config
 	cmd := &cobra.Command{
 		Use:   "start",
-		Short: "Start the MCP gateway",
+		Short: "Start MCP servers and accept client connections",
+		Long: `Start all installed MCP servers and begin accepting MCP client connections.
+
+This command starts the MCP gateway in the background, launches all configured
+MCP servers, and begins accepting connections from MCP clients like opencode,
+Cursor, and Claude Desktop.
+
+The servers will run continuously and be available for MCP client connections.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := initConfig(); err != nil {
 				return err
@@ -449,15 +456,12 @@ func NewStartCmd() *cobra.Command {
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("Starting MCP gateway...")
-			fmt.Println("DEBUG: initConfig completed")
+			fmt.Println("Starting MCP servers...")
 
 			// Create gateway for server management
-			fmt.Println("DEBUG: Creating gateway...")
 			gw := gateway.NewGateway(cfg, store)
-			fmt.Println("DEBUG: Gateway created")
 
-			// Start the gateway (which starts all servers)
+			// Start the gateway (which starts all servers) in background
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
@@ -470,39 +474,19 @@ func NewStartCmd() *cobra.Command {
 			// Give gateway time to start servers
 			time.Sleep(2 * time.Second)
 
-			// Create MCP server
-			fmt.Println("DEBUG: Creating MCP server service...")
+			// Create MCP server for client connections
 			mcpSrv := mcp_server.NewServer(cfg, gw)
 			mcpServer := mcpSrv.CreateMCPServer()
 			if mcpServer == nil {
 				return fmt.Errorf("failed to create MCP server")
 			}
-			fmt.Println("DEBUG: MCP server created")
 
-			// Create web server
-			fmt.Println("DEBUG: Creating web server...")
-			webSrv := web.NewServer(cfg, gw, store)
-			fmt.Println("DEBUG: Web server created")
-
-			// Start web server in a goroutine
-			go func() {
-				log.Printf("Starting web server on port %d", cfg.Web.Port)
-				if err := webSrv.Start(); err != nil {
-					log.Printf("Web server error: %v", err)
-				}
-			}()
-
-			// Start MCP server with stdio transport
-			fmt.Println("MCP gateway started successfully")
-			if cfg.Web.Host == "0.0.0.0" {
-				fmt.Printf("Web interface: http://%s:%d\n", getPublicIP(), cfg.Web.Port)
-			} else {
-				fmt.Printf("Web interface: http://%s:%d\n", cfg.Web.Host, cfg.Web.Port)
-			}
-			fmt.Printf("Ready to accept MCP connections on stdio\n")
+			fmt.Println("MCP servers started successfully")
+			fmt.Println("Ready to accept MCP connections on stdio")
+			fmt.Println("Use 'onemcp web' in a separate terminal for the management interface")
 			fmt.Println("Press Ctrl+C to stop")
 
-			// Run the MCP server
+			// Run the MCP server (this will run in foreground for client connections)
 			transport := &mcpsdk.StdioTransport{}
 			return mcpServer.Run(context.Background(), transport)
 		},
@@ -620,7 +604,17 @@ func NewWebCmd() *cobra.Command {
 	var cfg *config.Config
 	cmd := &cobra.Command{
 		Use:   "web",
-		Short: "Start the web interface only",
+		Short: "Start the web management interface",
+		Long: `Start the OneMCP web interface for managing MCP servers.
+
+This command launches the web-based management interface that allows you to:
+- View server status and health
+- Add and remove MCP servers
+- Configure API keys and credentials
+- Monitor server logs and performance
+
+Note: MCP servers should be started separately using 'onemcp start' command.
+The web interface will connect to running MCP servers for management.`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := initConfig(); err != nil {
 				return err
@@ -630,15 +624,15 @@ func NewWebCmd() *cobra.Command {
 			return err
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("Starting MCP Manager Web Interface...")
+			fmt.Println("Starting OneMCP Web Management Interface...")
 
-			// Create gateway for server management
+			// Create gateway for server management (connects to running servers)
 			gw := gateway.NewGateway(cfg, store)
 
 			// Create web server
 			webSrv := web.NewServer(cfg, gw, store)
 
-			fmt.Printf("Web interface starting on %s:%d\n", cfg.Web.Host, cfg.Web.Port)
+			fmt.Printf("Web interface available at: http://localhost:%d\n", cfg.Web.Port)
 			fmt.Println("Press Ctrl+C to stop")
 
 			// Start web server
